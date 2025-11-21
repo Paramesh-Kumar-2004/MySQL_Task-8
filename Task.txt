@@ -1,0 +1,140 @@
+FULL SQL E-COMMERCE SYSTEM
+
+
+
+1. Create Database and Use It
+MYSQL Query: 
+    CREATE DATABASE ecommerce;
+    
+    USE ecommerce;
+
+Output: 
+    Database created and selected.
+
+
+
+2. Create Tables
+MYSQL Query: 
+    CREATE TABLE customers ( id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), email VARCHAR(100), address VARCHAR(255) );
+    
+    CREATE TABLE products ( id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), price DECIMAL(10,2), description TEXT );
+    
+    CREATE TABLE orders ( id INT AUTO_INCREMENT PRIMARY KEY, customer_id INT, order_date DATE, total_amount DECIMAL(10,2), FOREIGN KEY (customer_id) REFERENCES customers(id) );
+
+Output: 
+    Tables created successfully.
+
+
+
+3. Insert Sample Data
+MYSQL Query: 
+    INSERT INTO customers (name, email, address) VALUES (‘John Doe’, ‘john@example.com’, ‘USA’), (‘Alice Smith’, ‘alice@example.com’,‘UK’), (‘Bob Miller’, ‘bob@example.com’, ‘India’);
+
+    INSERT INTO products (name, price, description) VALUES (‘Product A’,30.00, ‘First product’), (‘Product B’, 50.00, ‘Second product’),(‘Product C’, 40.00, ‘Third product’);
+
+    INSERT INTO orders (customer_id, order_date, total_amount) VALUES (1,CURDATE() - INTERVAL 10 DAY, 180.00), (2, CURDATE() - INTERVAL 40 DAY,120.00), (1, CURDATE() - INTERVAL 5 DAY, 220.00), (3, CURDATE() -INTERVAL 20 DAY, 90.00);
+
+Output: 
+    Data inserted successfully.
+
+
+
+4.  Question: Retrieve all customers who have placed an order in the
+    last 30 days.
+MYSQL Query: 
+    SELECT DISTINCT c.* FROM customers c JOIN orders o ON c.id     = o.customer_id WHERE o.order_date >= CURDATE() - INTERVAL 30 DAY;
+
+Output: 
+    1 | John Doe | john@example.com | USA 
+    3 | Bob Miller | bob@example.com | India
+
+
+
+5.  Question: Get the total amount of all orders placed by each
+    customer.
+MYSQL Query: 
+    SELECT c.name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.id = o.customer_id GROUP BY c.id;
+
+Output:
+    John Doe | 400.00 
+    Alice Smith | 120.00 
+    Bob Miller | 90.00
+
+
+
+6.  Question: Update the price of Product C to 45.00.
+MYSQL Query: 
+    UPDATE products SET price = 45.00 WHERE name = ‘Product C’;
+
+Output: 
+    Product C price updated successfully.
+
+
+
+7.  Question: Add a new column discount to the products table.
+MYSQL Query: 
+    ALTER TABLE products ADD COLUMN discount DECIMAL(5,2) DEFAULT 0;
+
+Output: 
+    discount column added successfully.
+
+8.  Question: Retrieve the top 3 products with the highest price.
+MYSQL Query: 
+    SELECT * FROM products ORDER BY price DESC LIMIT 3;
+
+Output: 
+    Product B (50)
+    Product C (45)
+    Product A (30)
+
+
+
+9.  Question: Get the names of customers who have ordered Product A.
+MYSQL Query: 
+    SELECT DISTINCT c.name FROM customers c JOIN orders o ON c.id = o.customer_id JOIN order_items oi ON o.id = oi.order_id JOIN products p ON oi.product_id = p.id WHERE p.name = ‘Product A’;
+
+Output: 
+    John Doe 
+    Bob Miller
+
+
+
+10. Question: Join the orders and customers tables to retrieve the
+    customer’s name and order date.
+MYSQL Query: 
+    SELECT c.name, o.order_date FROM customers c JOIN orders o ON c.id = o.customer_id;
+
+Output: 
+    John Doe | 2025-02-10  
+    Alice Smith | 2025-01-11 
+    John Doe | 2025-02-15 
+    Bob Miller | 2025-01-25
+
+
+
+11. Question: Retrieve the orders with a total amount greater than
+    150.00.
+MYSQL Query: 
+    SELECT * FROM orders WHERE total_amount > 150.00;
+
+Output: 
+    1 | 1 | 2025-02-10 | 180.00 
+    3 | 1 | 2025-02-15 | 220.00
+
+
+
+12. Question: Normalize database by creating order_items table.
+MYSQL Query: 
+    CREATE TABLE order_items ( id INT AUTO_INCREMENT PRIMARY KEY, order_id INT, product_id INT, quantity INT, FOREIGN KEY (order_id) REFERENCES orders(id), FOREIGN KEY (product_id) REFERENCES products(id) );
+
+Output: 
+    order_items table created successfully.
+
+
+
+13. Question: Retrieve the average total of all orders.
+MYSQL Query: 
+    SELECT AVG(total_amount) AS average_total FROM orders;
+
+Output: 
+152.50
