@@ -1,0 +1,319 @@
+CMD Workout 1
+
+mysql> create database e-commerce;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '-commerce' at line 1
+mysql> CREATE DATABASE E-commerce
+    -> ^C
+mysql> CREATE DATABASE e-commerce;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '-commerce' at line 1
+mysql> CREATE DATABASE Ecommerce;
+Query OK, 1 row affected (0.31 sec)
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| ecommerce          |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+5 rows in set (0.01 sec)
+
+mysql> use ecommerce;
+Database changed
+mysql> create table customers(
+    -> id INT primary key auto_increment,
+    -> name varchar(100),
+    -> email varchar(100),
+    -> address varchar(100)
+    -> );
+Query OK, 0 rows affected (0.39 sec)
+
+mysql> desc customers;
++---------+--------------+------+-----+---------+----------------+
+| Field   | Type         | Null | Key | Default | Extra          |
++---------+--------------+------+-----+---------+----------------+
+| id      | int          | NO   | PRI | NULL    | auto_increment |
+| name    | varchar(100) | YES  |     | NULL    |                |
+| email   | varchar(100) | YES  |     | NULL    |                |
+| address | varchar(100) | YES  |     | NULL    |                |
++---------+--------------+------+-----+---------+----------------+
+4 rows in set (0.13 sec)
+
+mysql> CREATE TABLE products (
+    ->     id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     name VARCHAR(100),
+    ->     price DECIMAL(10,2),
+    ->     description TEXT
+    -> );
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> create table orders(
+    -> id int primary key auto_increment,
+    ->  customer_id INT,
+    ->     order_date DATE,
+    ->     total_amount DECIMAL(10,2),
+    ->     FOREIGN KEY (customer_id) REFERENCES customers(id)
+    -> );
+Query OK, 0 rows affected (0.35 sec)
+
+mysql> insert into customers(name,email,address) values
+    -> ('John Doe', 'john@example.com', 'USA'),
+    -> ('Alice Smith', 'alice@example.com', 'UK'),
+    -> ('Bob Miller', 'bob@example.com', 'India');
+Query OK, 3 rows affected (0.10 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> INSERT INTO products (name, price, description) VALUES
+    -> ('Product A', 30.00, 'First product'),
+    -> ('Product B', 50.00, 'Second product'),
+    -> ('Product C', 40.00, 'Third product');
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> INSERT INTO orders (customer_id, order_date, total_amount) VALUES
+    -> (1, CURDATE() - INTERVAL 10 DAY, 180.00),
+    -> (2, CURDATE() - INTERVAL 40 DAY, 120.00),
+    -> (1, CURDATE() - INTERVAL 5 DAY, 220.00),
+    -> (3, CURDATE() - INTERVAL 20 DAY, 90.00);
+Query OK, 4 rows affected (0.01 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql> SELECT DISTINCT c.*
+    -> FROM customers c
+    -> JOIN orders o ON c.id = o.customer_id
+    -> WHERE o.order_date >= CURDATE() - INTERVAL 30 DAY;
++----+------------+------------------+---------+
+| id | name       | email            | address |
++----+------------+------------------+---------+
+|  1 | John Doe   | john@example.com | USA     |
+|  3 | Bob Miller | bob@example.com  | India   |
++----+------------+------------------+---------+
+2 rows in set (0.02 sec)
+
+mysql> SELECT c.name, SUM(o.total_amount) AS total_spent
+    -> FROM customers c
+    -> JOIN orders o ON c.id = o.customer_id
+    -> GROUP BY c.id;
++-------------+-------------+
+| name        | total_spent |
++-------------+-------------+
+| John Doe    |      400.00 |
+| Alice Smith |      120.00 |
+| Bob Miller  |       90.00 |
++-------------+-------------+
+3 rows in set (0.07 sec)
+
+mysql> UPDATE products
+    -> SET price = 45.00
+    -> WHERE name = 'Product C';
+Query OK, 1 row affected (0.08 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> ALTER TABLE products
+    -> ADD COLUMN discount DECIMAL(5,2) DEFAULT 0;
+Query OK, 0 rows affected (0.09 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> SELECT *
+    -> FROM products
+    -> ORDER BY price DESC
+    -> LIMIT 3;
++----+-----------+-------+----------------+----------+
+| id | name      | price | description    | discount |
++----+-----------+-------+----------------+----------+
+|  2 | Product B | 50.00 | Second product |     0.00 |
+|  3 | Product C | 45.00 | Third product  |     0.00 |
+|  1 | Product A | 30.00 | First product  |     0.00 |
++----+-----------+-------+----------------+----------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT DISTINCT c.name
+    -> FROM customers c
+    -> JOIN orders o ON c.id = o.customer_id
+    -> JOIN order_items oi ON o.id = oi.order_id
+    -> JOIN products p ON oi.product_id = p.id
+    -> WHERE p.name = 'Product A';
+ERROR 1146 (42S02): Table 'ecommerce.order_items' doesn't exist
+mysql> select * from customers;
++----+-------------+-------------------+---------+
+| id | name        | email             | address |
++----+-------------+-------------------+---------+
+|  1 | John Doe    | john@example.com  | USA     |
+|  2 | Alice Smith | alice@example.com | UK      |
+|  3 | Bob Miller  | bob@example.com   | India   |
++----+-------------+-------------------+---------+
+3 rows in set (0.00 sec)
+
+mysql> select * from orders;
++----+-------------+------------+--------------+
+| id | customer_id | order_date | total_amount |
++----+-------------+------------+--------------+
+|  1 |           1 | 2025-11-11 |       180.00 |
+|  2 |           2 | 2025-10-12 |       120.00 |
+|  3 |           1 | 2025-11-16 |       220.00 |
+|  4 |           3 | 2025-11-01 |        90.00 |
++----+-------------+------------+--------------+
+4 rows in set (0.00 sec)
+
+mysql> CREATE TABLE order_items (
+    ->     id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     order_id INT,
+    ->     product_id INT,
+    ->     quantity INT,
+    ->     FOREIGN KEY (order_id) REFERENCES orders(id),
+    ->     FOREIGN KEY (product_id) REFERENCES products(id)
+    -> );
+Query OK, 0 rows affected (0.36 sec)
+
+mysql> SELECT *
+    -> FROM products
+    -> ORDER BY price DESC
+    -> LIMIT 3;
++----+-----------+-------+----------------+----------+
+| id | name      | price | description    | discount |
++----+-----------+-------+----------------+----------+
+|  2 | Product B | 50.00 | Second product |     0.00 |
+|  3 | Product C | 45.00 | Third product  |     0.00 |
+|  1 | Product A | 30.00 | First product  |     0.00 |
++----+-----------+-------+----------------+----------+
+3 rows in set (0.01 sec)
+
+mysql> SELECT DISTINCT c.name
+    -> FROM customers c
+    -> JOIN orders o ON c.id = o.customer_id
+    -> JOIN order_items oi ON o.id = oi.order_id
+    -> JOIN products p ON oi.product_id = p.id
+    -> WHERE p.name = 'Product A';
+Empty set (0.04 sec)
+
+mysql> SELECT DISTINCT c.name
+    -> FROM customers c
+    -> JOIN orders o ON c.id = o.customer_id
+    -> JOIN order_items oi ON o.id = oi.order_id
+    -> JOIN products p ON oi.product_id = p.id
+    -> WHERE p.name = 'Product A';
+Empty set (0.00 sec)
+
+mysql> SELECT DISTINCT c.name
+    -> FROM customers c
+    -> JOIN orders o ON c.id = o.customer_id
+    -> JOIN order_items oi ON o.id = oi.order_id
+    -> JOIN products p ON oi.product_id = p.id
+    -> WHERE p.name = 'Product B';
+Empty set (0.00 sec)
+
+mysql> SELECT c.name, o.order_date
+    -> FROM customers c
+    -> JOIN orders o ON c.id = o.customer_id;
++-------------+------------+
+| name        | order_date |
++-------------+------------+
+| John Doe    | 2025-11-11 |
+| John Doe    | 2025-11-16 |
+| Alice Smith | 2025-10-12 |
+| Bob Miller  | 2025-11-01 |
++-------------+------------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT *
+    -> FROM orders
+    -> WHERE total_amount > 150.00;
++----+-------------+------------+--------------+
+| id | customer_id | order_date | total_amount |
++----+-------------+------------+--------------+
+|  1 |           1 | 2025-11-11 |       180.00 |
+|  3 |           1 | 2025-11-16 |       220.00 |
++----+-------------+------------+--------------+
+2 rows in set (0.00 sec)
+
+mysql> CREATE TABLE order_items (
+    ->     id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     order_id INT,
+    ->     product_id INT,
+    ->     quantity INT,
+    ->     FOREIGN KEY (order_id) REFERENCES orders(id),
+    ->     FOREIGN KEY (product_id) REFERENCES products(id)
+    -> );
+ERROR 1050 (42S01): Table 'order_items' already exists
+mysql> SELECT AVG(total_amount) AS average_total
+    -> FROM orders;
++---------------+
+| average_total |
++---------------+
+|    152.500000 |
++---------------+
+1 row in set (0.01 sec)
+
+mysql> SELECT DISTINCT c.name
+    -> FROM customers c
+    -> JOIN orders o ON c.id = o.customer_id
+    -> JOIN order_items oi ON o.id = oi.order_id
+    -> JOIN products p ON oi.product_id = p.id
+    -> WHERE p.name = 'Product A';
+Empty set (0.00 sec)
+
+mysql> SELECT * FROM products;
++----+-----------+-------+----------------+----------+
+| id | name      | price | description    | discount |
++----+-----------+-------+----------------+----------+
+|  1 | Product A | 30.00 | First product  |     0.00 |
+|  2 | Product B | 50.00 | Second product |     0.00 |
+|  3 | Product C | 45.00 | Third product  |     0.00 |
++----+-----------+-------+----------------+----------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT * FROM order_items;
+Empty set (0.00 sec)
+
+mysql> desc orders
+    -> ;
++--------------+---------------+------+-----+---------+----------------+
+| Field        | Type          | Null | Key | Default | Extra          |
++--------------+---------------+------+-----+---------+----------------+
+| id           | int           | NO   | PRI | NULL    | auto_increment |
+| customer_id  | int           | YES  | MUL | NULL    |                |
+| order_date   | date          | YES  |     | NULL    |                |
+| total_amount | decimal(10,2) | YES  |     | NULL    |                |
++--------------+---------------+------+-----+---------+----------------+
+4 rows in set (0.01 sec)
+
+mysql> desc order_items;
++------------+------+------+-----+---------+----------------+
+| Field      | Type | Null | Key | Default | Extra          |
++------------+------+------+-----+---------+----------------+
+| id         | int  | NO   | PRI | NULL    | auto_increment |
+| order_id   | int  | YES  | MUL | NULL    |                |
+| product_id | int  | YES  | MUL | NULL    |                |
+| quantity   | int  | YES  |     | NULL    |                |
++------------+------+------+-----+---------+----------------+
+4 rows in set (0.00 sec)
+
+mysql> INSERT INTO order_items (order_id, product_id, quantity)
+    -> VALUES (1, 1, 2);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> SELECT * FROM order_items;
++----+----------+------------+----------+
+| id | order_id | product_id | quantity |
++----+----------+------------+----------+
+|  1 |        1 |          1 |        2 |
++----+----------+------------+----------+
+1 row in set (0.00 sec)
+
+mysql> SELECT DISTINCT c.name
+    -> FROM customers c
+    -> JOIN orders o ON c.id = o.customer_id
+    -> JOIN order_items oi ON o.id = oi.order_id
+    -> JOIN products p ON oi.product_id = p.id
+    -> WHERE p.name = 'Product A';
++----------+
+| name     |
++----------+
+| John Doe |
++----------+
+1 row in set (0.00 sec)
+
+mysql>
