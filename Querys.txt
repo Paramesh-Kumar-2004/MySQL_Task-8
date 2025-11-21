@@ -33,6 +33,15 @@ CREATE TABLE orders (
     FOREIGN KEY (customer_id) REFERENCES customers(id)
 );
 
+- CREATE TABLE order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT,
+    product_id INT,
+    quantity INT,
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
 
 
 Insert Sample Data
@@ -54,6 +63,9 @@ INSERT INTO orders (customer_id, order_date, total_amount) VALUES
 (2, CURDATE() - INTERVAL 40 DAY, 120.00),
 (1, CURDATE() - INTERVAL 5 DAY, 220.00),
 (3, CURDATE() - INTERVAL 20 DAY, 90.00);
+
+- Insert order_items
+INSERT INTO order_items (order_id, product_id, quantity) VALUES (1, 1, 2);
 
 
 Querys
